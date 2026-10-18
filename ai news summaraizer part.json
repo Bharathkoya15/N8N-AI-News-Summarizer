@@ -1,0 +1,242 @@
+{
+  "name": "ai news summaraizer part ",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        336
+      ],
+      "id": "5fa64cd2-ad41-4e96-b5ce-8174e35b167d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "c1daOzMMzzoddNsi",
+          "name": "Google Gemini(PaLM) Api account 100606"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are an AI news summarizer handling multiple categories.\n\nOrganize by category:\n\nAI NEWS\n=======\n[Top 3 AI news items]\n\nTECHNOLOGY UPDATES\n==================\n[Top 3 technology items]\n\nFor each item:\n- Headline in ALL CAPS\n- 2-3 sentence summary\n- Article link\n\nKeep it professional and scannable.\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        672,
+        96
+      ],
+      "id": "935b9cbd-050c-4c2b-8ff9-dc21cba6cf37",
+      "name": "AI Summarization Model"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        224,
+        96
+      ],
+      "id": "d579eb6c-c5e9-42df-a555-20c5fc21f006",
+      "name": "Data Merger"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "include": "specifiedFields",
+        "fieldsToInclude": "title, link, content, contentSnippet",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        448,
+        96
+      ],
+      "id": "1b74062e-6e9f-438b-b2d0-bd429b01c14d",
+      "name": "Data Aggregator"
+    },
+    {
+      "parameters": {
+        "sendTo": "YOUR_EMAILID",
+        "subject": "Today's AI News for you...",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        96
+      ],
+      "id": "fc4fc36d-e4f6-4ef3-81e8-850d75145f99",
+      "name": "Email Sender",
+      "webhookId": "7136733c-6b4b-43f2-8120-4196a3996cf4",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "7JQjMGG6u0ezqowc",
+          "name": "Gmail account 4692"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -224,
+        96
+      ],
+      "id": "79ca57bb-c571-4518-b176-2eddb675a485",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://www.normaltech.ai/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a1327f65-9b17-456d-bbfa-d0b12d9ffd86",
+      "name": "NormalTech"
+    },
+    {
+      "parameters": {
+        "url": "https://aibusiness.com/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        176
+      ],
+      "id": "3f1d6a51-24c1-44e2-a13c-4ba485cc3146",
+      "name": "AIBusiness"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Summarization Model",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Summarization Model": {
+      "main": [
+        [
+          {
+            "node": "Email Sender",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Merger": {
+      "main": [
+        [
+          {
+            "node": "Data Aggregator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Aggregator": {
+      "main": [
+        [
+          {
+            "node": "AI Summarization Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "NormalTech",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AIBusiness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NormalTech": {
+      "main": [
+        [
+          {
+            "node": "Data Merger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AIBusiness": {
+      "main": [
+        [
+          {
+            "node": "Data Merger",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "20a5875f-5882-4de5-9e84-894c371a024e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "969257b09ad2942bbaff2e2288304f4969030574d109cdeca05bf11f630884df"
+  },
+  "id": "YIOkt3XNH0pkxH5s",
+  "tags": []
+}
